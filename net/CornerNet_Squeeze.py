@@ -5,6 +5,21 @@ from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 import tensorflow as tf
 
+def forward_convolution(x,something_that_I_dont_understand,kernel_size,inp_dim,stride = 1,bias = True):
+    
+    '''questions:
+        padding, in pytorch amount of implicit zero-paddings on both sides, in tf _valid_ or _same_??
+        
+        input and output dimension??
+        should i use tf.nn layers??
+        '''
+    conv=Conv2D(something_that_I_dont_understand,kernel_size=kernel_size,
+                strides = (stride,stride), use_bias = not bias )(x)
+    #conv = tf.nn.convolution()
+    batch=BatchNormalization(axis=1)(conv)
+    relu = tf.nn.relu(batch)
+    return relu
+
 def create_fire_module(x, nb_squeeze_filter, name, use_bypass=False):
     """
     Creates a fire module
