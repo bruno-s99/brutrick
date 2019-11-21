@@ -1,6 +1,11 @@
 import tensorflow as tf
 from module.corner_pooling import TopPool,BottomPool, LeftPool, RightPool
 
+
+#TODO:
+#Wie ist der name vom firemodule relevant??
+
+
 class Model():
     def conv_bn_re(self,inputs,input_dim,out_dim,strides=(1,1),use_relu=True,use_bn=True,k=3,is_training=True,scope='conv_bn_re'):
         with tf.compat.v1.variable_scope(scope):
