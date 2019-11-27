@@ -44,14 +44,14 @@ class Model():
             else:
                 low_2=self.res_block(low_1,next_dim,next_dim,next_res,is_training=is_training,scope='low_2')
             low_3=self.res_block(low_2,next_dim,curr_dim,curr_res,is_training=is_training,scope='low_3')
-
-            up_2=tf.image.resize(low_3,tf.shape(input=low_3)[1:3]*2,name='up_2', method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+  
+            up_2=tf.image.resize_Nea(low_3,tf.shape(input=low_3)[1:3]*2,name='up_2', method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
             merge=tf.add(up_1,up_2)
             return merge
     def start_conv(self,img,is_training=True,scope='start'):
         with tf.compat.v1.variable_scope(scope):
             x=tf.contrib.layers.conv2d(img,128,7,2)
-            x=tf.contrib.layers.batch_norm(x,is_training=is_training)
+            x=tf.contrib.layers.batch_norm(x,is_training=is_training) 
             x=self.residual(x,128,256,strides=(2,2),scope='residual_start')
             return x
     def corner_pooling(self,inputs,input_dim,out_dim,k=3,is_training=True,scope='corner_pooling'):
