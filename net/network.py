@@ -22,10 +22,16 @@ class NetWork():
             test_outs=[]
             start_layer=self.model.start_conv(img,training=training)#[b,128,128,256]
             
+            start_layer=tf.image.resize(start_layer,tf.shape(start_layer)[1:3]*2,method=tf.image.ResizeMethod.NEAREST_NEIGHBOR) #to match gt and out
+
             with tf.compat.v1.variable_scope('inter_supervise'):
+                ####hier wird outs[0-5] berechnet
 
                 #Im paper steht vor hourglass einmal downsamplen
-                hourglass_1=self.model.hourglass(start_layer,self.n_deep,self.n_res,self.n_dims,training=training)#[b,128,128,256]
+                hourglass_1=self.model.hourglass(start_layer,self.n_deep,self.n_res,self.n_dims,training=training)#[b,128,128,256] 
+               
+                
+               
                 hinge_is=self.model.hinge(hourglass_1,256,256,training=training)
                 top_left_is,bottom_right_is=self.model.corner_pooling(hinge_is,256,256,training=training)
                 #top_left
@@ -49,6 +55,9 @@ class NetWork():
             with tf.compat.v1.variable_scope('master_branch'):
                 inter=self.model.inter(start_layer,hinge_is,256,training=training)
                 hourglass_2=self.model.hourglass(inter,self.n_deep,self.n_res,self.n_dims,training=training)#[b,128,128,256]
+
+                
+
                 hinge=self.model.hinge(hourglass_2,256,256,training=training)
                 top_left,bottom_right=self.model.corner_pooling(hinge,256,256,training=training)
                 #top_left
@@ -71,6 +80,7 @@ class NetWork():
             outs=[heat_tl_is,heat_br_is,tag_tl_is,tag_br_is,offset_tl_is,offset_br_is,heat_tl,heat_br,tag_tl,tag_br,offset_tl,offset_br]
             test_outs=[heat_tl,heat_br,tag_tl_test,tag_br_test,offset_tl_test,offset_br_test]
             return outs,test_outs
+
     def loss(self,outs,targets,scope='loss'):
         with tf.compat.v1.variable_scope(scope):
             stride = 6
@@ -116,7 +126,7 @@ class NetWork():
 
             loss = (focal_loss + pull_loss + push_loss + offset_loss) / len(heats_tl)
             return loss,focal_loss,pull_loss,push_loss,offset_loss
-            
+
     def decode(self,heat_tl,heat_br,tag_tl,tag_br,offset_tl,offset_br,k=100,ae_threshold=0.5,num_dets=1000):
         batch=tf.shape(input=heat_br)[0]
         heat_tl=tf.nn.sigmoid(heat_tl)
