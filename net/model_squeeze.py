@@ -16,7 +16,6 @@ class Model():
             if use_relu:
                 x=tf.nn.relu(x)
             return x
-    '''residual ist obsolet, da es immer mit create_fire_module ersetzt wird'''
     
     def residual(self,inputs,input_dim,out_dim,k=3,strides=(1,1),training=True,scope='residual'):
         with tf.compat.v1.variable_scope(scope):
@@ -98,9 +97,10 @@ class Model():
           #muss vielleicht noch ersetzt werde. Tf Lite unterstützt resize_nearest_ neighbor && [1:3]*2 ersetzt durch [1:3]
             up_2=tf.image.resize(low_3,tf.shape(input=low_3)[1:3],name='up_2', method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
             merge=tf.add(up_1,up_2)
+
             return merge
 
-            #evtl klammer bei batchnorm entfernen
+            
     def start_conv(self,img,training=True,scope='start',k=3):
         with tf.compat.v1.variable_scope(scope):
             x=tf.keras.layers.Conv2D(128,7,2)(img)
@@ -109,6 +109,7 @@ class Model():
             #changed 256 to 128 and added a second residual 
             x=self.residual(x,128,256,strides=(2,2),scope='residual_start')
             x=self.residual(x,256,256,strides=(2,2),scope='residual_start1')
+
             return x
 
     def corner_pooling(self,inputs,input_dim,out_dim,k=3,training=True,scope='corner_pooling'):
@@ -182,8 +183,6 @@ class Model():
     '''ab hier neues zeug was vorher nicht da war'''
   
     def pred_mod(self,input,inp_dim=256,out_dim=256,dim=80, kernel=1,scope='pred'):
-        if(scope=='tag_tl' and dim==80): 
-            import ipdb; ipdb.set_trace()
         x=Conv2D(out_dim,kernel,padding='SAME',use_bias=False)(input)
         x=BatchNormalization()(x)
         x=tf.nn.relu(x)
