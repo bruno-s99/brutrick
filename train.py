@@ -52,7 +52,8 @@ class Train():
                     next_offsets_tl=offsets_tl[i*self.batch_i:(i+1)*self.batch_i]
                     next_offsets_br=offsets_br[i*self.batch_i:(i+1)*self.batch_i]
                     with tf.compat.v1.variable_scope('', reuse=reuse1):
-                        outs,test_outs=self.net.corner_net(next_imgs,next_tags_tl,next_tags_br,is_training=True)
+                        import ipdb; ipdb.set_trace()
+                        outs,test_outs=self.net.corner_net(next_imgs,next_tags_tl,next_tags_br,training=True)
                     dets_tensor,debug_boxes=self.net.decode(*test_outs)
 
                     loss,focal_loss,pull_loss,push_loss,offset_loss=self.net.loss(outs,[next_heatmaps_tl,next_heatmaps_br,next_tags_mask,next_offsets_tl,next_offsets_br])
@@ -143,10 +144,11 @@ class Train():
 
         #test_images, test_tags_tl, test_tags_br,test_heatmaps_tl, test_heatmaps_br, test_tags_mask, test_offsets_tl, test_offsets_br,test_boxes=self.data_test.get_batch_data(self.batch_size)
         #with tf.variable_scope('net'):
-        #is_training=tf.constant(True)
-        outs,test_outs=self.net.corner_net(images,tags_tl,tags_br,is_training=True)
+        #training=tf.constant(True)
+        outs,test_outs=self.net.corner_net(images,tags_tl,tags_br,training=True)
+        
         dets_tensor,debug_boxes=self.net.decode(*test_outs)
-        #outs_test=self.net.corner_net(test_images,test_tags_tl,test_tags_br,is_training=False)
+        #outs_test=self.net.corner_net(test_images,test_tags_tl,test_tags_br,training=False)
         loss,focal_loss,pull_loss,push_loss,offset_loss=self.net.loss(outs,[heatmaps_tl,heatmaps_br,tags_mask,offsets_tl,offsets_br])
         #with tf.variable_scope('train_op'):
 

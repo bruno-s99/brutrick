@@ -12,9 +12,9 @@ idee: CornerNet_Squeeze.py ist wie network funktion corner_net_squeeze ist der D
 
 class Squeeze_NetWork():
     def __init__(slef, pullweight=0.1, push_weight=0.1, offset_weight=1):
-        self.n_deep  = 5
-        self.n_dims  = [256, 256, 384, 384, 384, 512]
-        self.n_res   = [2, 2, 2, 2, 2, 4]
+        self.n_deep  = 4
+        self.n_dims  = [256, 256, 384, 384, 512]
+        self.n_res   = [2, 2, 2, 2, 4]
         self.out_dim = 80
         self.model=Model()
         self.pull_weight = pull_weight

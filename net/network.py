@@ -1,12 +1,12 @@
 import tensorflow as tf
-from .model import Model
+from .model_squeeze import Model
 from module.loss_module import focal_loss,tag_loss,offset_loss
 from module.forward_module import nms,top_k,map_to_vector,expand_copy
 class NetWork():
     def __init__(self,pull_weight=0.1, push_weight=0.1, offset_weight=1):
-        self.n_deep  = 5
-        self.n_dims  = [256, 256, 384, 384, 384, 512]
-        self.n_res   = [2, 2, 2, 2, 2, 4]
+        self.n_deep  = 4
+        self.n_dims  = [256, 256, 384, 384, 512]
+        self.n_res   = [2, 2, 2, 2, 4]
         self.out_dim = 80
         self.model=Model()
         self.pull_weight = pull_weight
@@ -15,29 +15,30 @@ class NetWork():
         self.focal_loss  = focal_loss
         self.tag_loss     = tag_loss
         self.offset_loss   = offset_loss
-    def corner_net(self,img,gt_tag_tl=None,gt_tag_br=None,is_training=True,scope='CornerNet'):
+    def corner_net(self,img,gt_tag_tl=None,gt_tag_br=None,training=True,scope='CornerNet'):
         with tf.compat.v1.variable_scope(scope):
 
             outs=[]
             test_outs=[]
-            start_layer=self.model.start_conv(img,is_training=is_training)#[b,128,128,256]
-
+            start_layer=self.model.start_conv(img,training=training)#[b,128,128,256]
+            
             with tf.compat.v1.variable_scope('inter_supervise'):
 
-                hourglass_1=self.model.hourglass(start_layer,self.n_deep,self.n_res,self.n_dims,is_training=is_training)#[b,128,128,256]
-                hinge_is=self.model.hinge(hourglass_1,256,256,is_training=is_training)
-                top_left_is,bottom_right_is=self.model.corner_pooling(hinge_is,256,256,is_training=is_training)
+                #Im paper steht vor hourglass einmal downsamplen
+                hourglass_1=self.model.hourglass(start_layer,self.n_deep,self.n_res,self.n_dims,training=training)#[b,128,128,256]
+                hinge_is=self.model.hinge(hourglass_1,256,256,training=training)
+                top_left_is,bottom_right_is=self.model.corner_pooling(hinge_is,256,256,training=training)
                 #top_left
-                heat_tl_is=self.model.heat(top_left_is,256,self.out_dim,scope='heat_tl')
-                tag_tl_is=self.model.tag(top_left_is,256,1,scope='tag_tl')
+                heat_tl_is=self.model.pred_mod(top_left_is,inp_dim=256,out_dim=self.out_dim,scope='heat_tl')
+                tag_tl_is=self.model.pred_mod(top_left_is,inp_dim=256,dim=1,scope='tag_tl')
                 if not gt_tag_tl is None:
                     tag_tl_is=map_to_vector(tag_tl_is,gt_tag_tl)
                 offset_tl_is=self.model.offset(top_left_is,256,2,scope='offset_tl')
                 if not gt_tag_tl is None:
                     offset_tl_is=map_to_vector(offset_tl_is,gt_tag_tl)
                 #bottom_right
-                heat_br_is=self.model.heat(bottom_right_is,256,self.out_dim,scope='heat_br')
-                tag_br_is=self.model.tag(bottom_right_is,256,1,scope='tag_br')
+                heat_br_is=self.model.pred_mod(bottom_right_is,inp_dim=256,dim=self.out_dim,scope='heat_br')
+                tag_br_is=self.model.pred_mod(bottom_right_is, inp_dim=256,dim=1,scope='tag_br')
                 if not gt_tag_br is None:
                     tag_br_is=map_to_vector(tag_br_is,gt_tag_br)
                 offset_br_is=self.model.offset(bottom_right_is,256,2,scope='offset_br')
@@ -46,21 +47,21 @@ class NetWork():
 
 
             with tf.compat.v1.variable_scope('master_branch'):
-                inter=self.model.inter(start_layer,hinge_is,256,is_training=is_training)
-                hourglass_2=self.model.hourglass(inter,self.n_deep,self.n_res,self.n_dims,is_training=is_training)#[b,128,128,256]
-                hinge=self.model.hinge(hourglass_2,256,256,is_training=is_training)
-                top_left,bottom_right=self.model.corner_pooling(hinge,256,256,is_training=is_training)
+                inter=self.model.inter(start_layer,hinge_is,256,training=training)
+                hourglass_2=self.model.hourglass(inter,self.n_deep,self.n_res,self.n_dims,training=training)#[b,128,128,256]
+                hinge=self.model.hinge(hourglass_2,256,256,training=training)
+                top_left,bottom_right=self.model.corner_pooling(hinge,256,256,training=training)
                 #top_left
-                heat_tl=self.model.heat(top_left,256,self.out_dim,scope='heat_tl')
-                tag_tl_test=self.model.tag(top_left,256,1,scope='tag_tl')
+                heat_tl=self.model.pred_mod(top_left,256,self.out_dim,scope='heat_tl')
+                tag_tl_test=self.model.pred_mod(top_left,256,dim=1,scope='tag_tl')
                 if not gt_tag_tl is None:
                     tag_tl=map_to_vector(tag_tl_test,gt_tag_tl)
                 offset_tl_test=self.model.offset(top_left,256,2,scope='offset_tl')
                 if not gt_tag_tl is None:
                     offset_tl=map_to_vector(offset_tl_test,gt_tag_tl)
                 #bottom_right
-                heat_br=self.model.heat(bottom_right,256,self.out_dim,scope='heat_br')
-                tag_br_test=self.model.tag(bottom_right,256,1,scope='tag_br')
+                heat_br=self.model.pred_mod(bottom_right,256,self.out_dim,scope='heat_br')
+                tag_br_test=self.model.pred_mod(bottom_right,256,dim=1,scope='tag_br')
                 if not gt_tag_br is None:
                     tag_br=map_to_vector(tag_br_test,gt_tag_br)
                 offset_br_test=self.model.offset(bottom_right,256,2,scope='offset_br')
@@ -115,6 +116,7 @@ class NetWork():
 
             loss = (focal_loss + pull_loss + push_loss + offset_loss) / len(heats_tl)
             return loss,focal_loss,pull_loss,push_loss,offset_loss
+            
     def decode(self,heat_tl,heat_br,tag_tl,tag_br,offset_tl,offset_br,k=100,ae_threshold=0.5,num_dets=1000):
         batch=tf.shape(input=heat_br)[0]
         heat_tl=tf.nn.sigmoid(heat_tl)
@@ -195,21 +197,4 @@ class NetWork():
 
         detection=tf.concat([bboxes,scores,value_tl,value_br,class_],-1)
         return detection,debug_bboxes
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

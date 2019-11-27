@@ -128,6 +128,8 @@ class Image_data():
             [tf.float32,tf.int64,tf.int64,tf.float32,tf.float32,tf.float32,tf.float32,tf.float32,tf.int64,tf.float32])
         return images, tags_tl, tags_br,heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br,boxes,ratio
     def inupt_producer(self):
+        #WARNING: eager exec disabled
+        tf.compat.v1.disable_eager_execution()
         quene_train=tf.compat.v1.train.slice_input_producer([self.coco.get_all_img()],shuffle=True)
         self.images, self.tags_tl, self.tags_br,self.heatmaps_tl, self.heatmaps_br, self.tags_mask, self.offsets_tl, self.offsets_br,self.boxes,self.ratio=self.get_single_data(quene_train)
 

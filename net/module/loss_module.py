@@ -8,7 +8,6 @@ def focal_loss(preds,gt):
     loss=0
     #loss=tf.reduce_mean(tf.log(preds))
     for pre in preds:
-        # import ipdb; ipdb.set_trace()
         pos_weight=tf.compat.v1.where(tf.equal(gt,1),ones-pre,zeros)
         neg_weight=tf.compat.v1.where(tf.less(gt,1),pre,zeros)
         pos_loss=tf.reduce_sum(input_tensor=tf.math.log(pre) * tf.pow(pos_weight,2))
