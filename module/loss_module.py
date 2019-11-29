@@ -1,7 +1,6 @@
 import numpy as np
 import tensorflow as tf
 def focal_loss(preds,gt):
-    print(gt.get_shape().as_list())
     zeros=tf.zeros_like(gt)
     ones=tf.ones_like(gt)
     num_pos=tf.reduce_sum(input_tensor=tf.compat.v1.where(tf.equal(gt,1),ones,zeros))
@@ -17,7 +16,6 @@ def focal_loss(preds,gt):
     return loss
 def tag_loss(tag0, tag1, mask):
     #pull
-    print(tag0.get_shape().as_list())
     tag0=tf.squeeze(tag0,axis=-1)
     tag1=tf.squeeze(tag1,axis=-1)
     zeros=tf.zeros_like(mask)
