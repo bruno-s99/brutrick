@@ -8,7 +8,7 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, Concatenate
 
 class Model():
     def conv_bn_re(self,inputs,input_dim,out_dim,strides=(1,1),use_relu=True,use_bn=True,k=3,training=True,scope='conv_bn_re'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             #x=tf.contrib.layers.conv2d(inputs,out_dim,k,stride=strides,activation_fn=None)
             x=Conv2D(out_dim,k,strides=strides,padding='same')(inputs)
             if use_bn:
@@ -18,7 +18,7 @@ class Model():
             return x
     
     def residual(self,inputs,input_dim,out_dim,k=3,strides=(1,1),training=True,scope='residual'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             #assert inputs.get_shape().as_list()[3]==input_dim
             #low layer 3*3>3*3
             x=self.conv_bn_re(inputs,input_dim,out_dim,strides=strides,training=training,scope='up_1')
@@ -31,7 +31,7 @@ class Model():
         
         
     def res_block(self,inputs,input_dim,out_dim,n,k=3,training=True,scope='res_block'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope)as scope:
             x=self.create_fire_module(x,nb_squeeze_filter,'fire1')
             for i in range(1,n):
                 x=self.create_fire_module(x,nb_squeeze_filter,'fire1')
@@ -42,7 +42,7 @@ class Model():
         return axis
 
     def fire_module(self,inputs,input_dim,  out_dim,strides=1,k=3, sr=2,skip=False,relu=True,training=True,scope="fire_block"):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             conv1   = Conv2D(out_dim//sr,(1,1), padding='same', use_bias=False)(inputs)
             normalized = BatchNormalization(axis=1)(conv1)
             expand_1x1 = Conv2D(out_dim//sr, kernel_size=(1,1), padding='same',strides=strides)(normalized)
@@ -58,7 +58,7 @@ class Model():
     
 
     def fire_residual(self,inputs,input_dim,out_dim,k=3,strides=(1,1),training=True,scope='residual'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=self.fire_module(inputs,input_dim,out_dim,strides=strides,scope='up_1')
             x=self.fire_module(x,out_dim,out_dim,scope='up_2')
             skip=self.fire_module(inputs, input_dim, out_dim, strides=strides,k=1,skip=True,scope='low')
@@ -67,7 +67,7 @@ class Model():
     
     
     def fire_block(self,inputs,input_dim,out_dim,n,k=3,training=True,scope='fire_block'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=self.fire_residual(inputs,input_dim,out_dim,k=k,scope='residual_0')
             for i in range(1,n):
                 x=self.fire_residual(x,out_dim,out_dim,k=k,scope='residual_%d'%i)
@@ -78,7 +78,7 @@ class Model():
         #TODO:
         #
         
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             curr_res=n_res[0]
             next_res=n_res[1]
             curr_dim=n_dims[0]
@@ -102,7 +102,7 @@ class Model():
 
             
     def start_conv(self,img,training=True,scope='start',k=3):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=tf.keras.layers.Conv2D(128,7,2)(img)
             x=tf.keras.layers.BatchNormalization()(x,training=training)
             x=tf.keras.activations.relu(x)
@@ -113,8 +113,8 @@ class Model():
             return x
 
     def corner_pooling(self,inputs,input_dim,out_dim,k=3,training=True,scope='corner_pooling'):
-        with tf.compat.v1.variable_scope(scope):
-            with tf.compat.v1.variable_scope('top_left'):
+        with tf.name_scope(scope) as scope:
+            with tf.name_scope('top_left') as scope:
                 top=self.conv_bn_re(inputs,input_dim,128,training=training,scope='top')
                 top_pool=TopPool(top)
 
@@ -131,7 +131,7 @@ class Model():
 
                 merge_tl=tf.nn.relu(tf.add(skip_tl,top_left))
                 merge_tl=self.conv_bn_re(merge_tl,out_dim,out_dim,training=training,scope='merge_tl')
-            with tf.compat.v1.variable_scope('bottom_right'):
+            with tf.name_scope('bottom_right') as scope:
                 bottom=self.conv_bn_re(inputs,input_dim,128,training=training,scope='bottom')
                 bottom_pool=BottomPool(bottom)
 
@@ -152,28 +152,28 @@ class Model():
     def heat(self,inputs,input_dim,out_dim,scope='heat'):
         #out_dim=80
         #replace 3x2 kernels with 1x1 in prediction module
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=self.conv_bn_re(inputs,input_dim,input_dim,use_bn=False)
             x=Conv2d(out_dim,1)(x)
             return x
     def tag(self,inputs,input_dim,out_dim,scope='tag'):
         #out_dim=1
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=self.conv_bn_re(inputs,input_dim,input_dim,use_bn=False)
             x=Conv2D(out_dim,1)(x)
             return x
     def offset(self,inputs,input_dim,out_dim,scope='offset'):
         #out_dim=2
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=self.conv_bn_re(inputs,input_dim,input_dim,use_bn=False)
             x=Conv2D(out_dim,1)(x)
             return x
     def hinge(self,inputs,input_dim,out_dim,training=True,scope='hinge'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x=self.conv_bn_re(inputs,input_dim,out_dim,training=training)
             return x
     def inter(self,input_1,input_2,out_dim,training=True,scope='inter'):
-        with tf.compat.v1.variable_scope(scope):
+        with tf.name_scope(scope) as scope:
             x_1=self.conv_bn_re(input_1,tf.shape(input=input_1)[3],out_dim,use_relu=False,k=1,training=training,scope='branch_start')
             x_2=self.conv_bn_re(input_2,tf.shape(input=input_2)[3],out_dim,use_relu=False,k=1,training=training,scope='branch_hourglass1')
             x=tf.nn.relu(tf.add(x_1,x_2))
