@@ -3,4 +3,9 @@
 *.json
 *.pkl
 *.cpk
+*.pb
+*.pbtxt
+*.meta
+
+
 data
