@@ -8,5 +8,6 @@
 *.meta
 *.ckpt
 *.data
-
+*.index
+*.tflite
 data
