@@ -2,10 +2,11 @@
 *.png
 *.json
 *.pkl
-*.cpk
+*.ckp
 *.pb
 *.pbtxt
 *.meta
-
+*.ckpt
+*.data
 
 data
