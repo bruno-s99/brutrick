@@ -108,10 +108,10 @@ class Train():
 
             print('step %d, loss %g, focal_loss %g, pull_loss %g, push_loss %g, offset_loss %g, time %g, lr %g'
                   % (step, loss_, focal_loss_, pull_loss_, push_loss_, offset_loss_, duration, lr_))
-            #tf.io.write_graph(sess.graph_def, self.snapshot_file, str(step)+'train.pbtxt')
-            #saver.save(sess, self.snapshot_file, step)
-            saver.save(sess, self.snapshot_file, 0)
-            if step % 15 == 0:
+            #####tf.io.write_graph(sess.graph_def, self.snapshot_file, str(step)+'train.pbtxt')
+            ####saver.save(sess, self.snapshot_file, step)
+            #saver.save(sess, self.snapshot_file, 0)
+            if step % 100 == 0:
                 dets_, images_, debug_boxes_, boxes_, ratio_ = sess.run(
                     [dets_tensor, images, debug_boxes, boxes, ratio])
                 debug.test_debug(images_[0], dets_[0], debug_boxes_[0], boxes_[

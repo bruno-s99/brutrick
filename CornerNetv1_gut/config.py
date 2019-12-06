@@ -45,7 +45,7 @@ class Config:
         self._configs["nnet_rng"] = np.random.RandomState(317)
 
         #data_config
-        self._configs["categories"]        =1 #80
+        self._configs["categories"]        =1
         self._configs["rand_scale_min"]    =0.6
         self._configs["rand_scale_max"]    =1.4
         self._configs["rand_scale_step"]   =0.1

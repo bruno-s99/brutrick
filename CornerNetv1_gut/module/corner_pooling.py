@@ -3,6 +3,10 @@ import numpy as np
 def TopPool(inputs):
     #forward
     def forward(inputs):
+        #import ipdb; ipdb.set_trace()
+        #out=tf.compat.v1.reshape( tf.compat.v1.squeeze(tf.compat.v1.reshape(inputs[:][0][:][:],[1][5][128][128])) ,[5,1,128,128])
+        
+        #out=tf.compat.v1.reshape(tf.reduce_max(inputs,1),[5,1,128,128])
         out=tf.expand_dims(tf.reduce_max(inputs,1),1)
         i=tf.constant(1)
         batch,h,w,c=inputs.get_shape().as_list()
@@ -14,6 +18,7 @@ def TopPool(inputs):
             i = i + 1
             return i,out
         _,out = tf.while_loop(cond, body, [i,out],shape_invariants= [i.get_shape(), tf.TensorShape([batch,None,w,c])])
+        import ipdb; ipdb.set_trace()
         return out
     #backward
     def backward(inputs,dy):

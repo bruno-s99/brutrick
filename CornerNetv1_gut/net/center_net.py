@@ -2,18 +2,15 @@ import tensorflow as tf
 from .model_squeezev1 import Model
 from module.loss_module import focal_loss, tag_loss, offset_loss
 from module.forward_module import nms, top_k, map_to_vector, expand_copy
-#TODO :
-## get  rid of border, cornerpooling
-## check prediction points 
-## chek pull and push loss
 
-class NetWork():
+
+class Center_NetWork():
     def __init__(self, pull_weight=0.1, push_weight=0.1, offset_weight=1):
         
         self.n_deep = 4
         self.n_dims = [256, 256, 384, 384, 512]
         self.n_res = [2, 2, 2, 2, 4]
-        self.out_dim = 80 #1
+        self.out_dim = 1#80
         self.model = Model()
         self.pull_weight = pull_weight
         self.push_weight = push_weight
@@ -65,7 +62,7 @@ class NetWork():
                 
 
 
-    def corner_net(self, img, gt_tag_tl=None, gt_tag_br=None, is_training=True, scope='CornerNet'):
+    def center_net(self, img, gt_tag_tl=None, gt_tag_br=None, is_training=True, scope='CornerNet'):
         with tf.variable_scope(scope):
 
             outs = []
@@ -83,7 +80,8 @@ class NetWork():
                     hourglass_1, 256, 256, is_training=is_training)
                 # top_left_is, bottom_right_is = self.model.corner_pooling(
                 #     hinge_is, 256, 256, is_training=is_training)
-                top_left
+
+                center_heat=self.model.pred_mod(hinge_is,inp_dim=256)
 
                 # top_left
                 heat_tl_is = self.model.pred_mod(

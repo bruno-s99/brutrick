@@ -42,7 +42,7 @@ class Model():
                     x, out_dim, out_dim, k=k,is_training=is_training, scope='residual_%d' % i)
             return x
 
-    def pred_mod(self, input, inp_dim=256, out_dim=256, dim=1, kernel=1,is_training=True, scope='pred'):
+    def pred_mod(self, input, inp_dim=256, out_dim=256, dim=1, kernel=1,is_training=True, scope='pred'):#1 dim
      
         x = tf.layers.conv2d(input,out_dim, kernel, padding='SAME', use_bias=False)
         x = tf.contrib.layers.batch_norm(x, is_training=is_training)
