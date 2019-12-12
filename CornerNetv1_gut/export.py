@@ -62,7 +62,9 @@ class Export():
                 output_names = output_names[:-1]
                 print(output_names)
 
-                #CornerNet/master_branch/conv2d_1/BiasAdd,CornerNet/master_branch/conv2d_5/BiasAdd,CornerNet/master_branch/conv2d_3/BiasAdd,CornerNet/master_branch/conv2d_7/BiasAdd,CornerNet/master_branch/offset_tl/conv2d/BiasAdd,CornerNet/master_branch/offset_br/conv2d/BiasAdd
+                #CornerNet/master_branch/conv2d_1/BiasAdd,CornerNet/master_branch/
+                # conv2d_5/BiasAdd,CornerNet/master_branch/conv2d_3/BiasAdd,CornerNet/master_branch/
+                # conv2d_7/BiasAdd,CornerNet/master_branch/offset_tl/conv2d/BiasAdd,CornerNet/master_branch/offset_br/conv2d/BiasAdd
 
                 g = tf.get_default_graph()
                 #tf.contrib.quantize.create_eval_graph(input_graph=g)
@@ -88,10 +90,10 @@ class Export():
                 #                                     output_names_list, transforms)
                 transformed_graph_def = frozen_graph_def
 
-                with tf.gfile.GFile('./tmp/frozen_graph.pb', 'wb') as f:
+                with tf.gfile.GFile('./tmp/frozen_graph_without_cornerPooling.pb', 'wb') as f:
                         f.write(transformed_graph_def.SerializeToString())
 
-                with tf.gfile.GFile('./tmp/frozen_graph.pbtxt', 'w') as f:
+                with tf.gfile.GFile('./tmp/frozen_graph_without_cornerPooling.pbtxt', 'w') as f:
                         f.write(str(transformed_graph_def))                
 
                 #tflite_convert --output_file="tflite_model.tflite" --graph_def_file="frozen_graph.pb" --input_arrays="input_image" --output_arrays="CornerNet/master_branch/conv2d_1/BiasAdd,CornerNet/master_branch/conv2d_5/BiasAdd,CornerNet/master_branch/conv2d_3/BiasAdd,CornerNet/master_branch/conv2d_7/BiasAdd,CornerNet/master_branch/offset_tl/conv2d/BiasAdd,CornerNet/master_branch/offset_br/conv2d/BiasAdd" --input_shapes=1,512,512,3 --enable_select_tf_ops --allow_custom_ops

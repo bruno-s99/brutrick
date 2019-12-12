@@ -32,6 +32,7 @@ class Train():
         coord = tf.train.Coordinator()
         images, tags_tl, tags_br, heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br, boxes, ratio = self.data_train.get_batch_data(
             self.batch_size)
+        
         tower_grads = []
         steps = tf.Variable(0, name='global_step', trainable=False)
         lr = tf.train.exponential_decay(
@@ -92,10 +93,10 @@ class Train():
         init = tf.global_variables_initializer()
         sess.run(init)
         threads = tf.train.start_queue_runners(coord=coord, sess=sess)
-        print(self.num_steps)
+        print('num_steps: ',self.num_steps)
         debug = Debug()
         epoch = 0
-        if self.load(saver, sess, self.snapshot_dir):
+        if (False):#self.load(saver, sess, self.snapshot_dir):
             print(" [*] Load SUCCESS")
         else:
             print(" [!] Load failed...")
@@ -110,10 +111,11 @@ class Train():
                   % (step, loss_, focal_loss_, pull_loss_, push_loss_, offset_loss_, duration, lr_))
             #####tf.io.write_graph(sess.graph_def, self.snapshot_file, str(step)+'train.pbtxt')
             ####saver.save(sess, self.snapshot_file, step)
-            #saver.save(sess, self.snapshot_file, 0)
-            if step % 100 == 0:
+            saver.save(sess, self.snapshot_file, 0)
+            if step % 200 == 0:
                 dets_, images_, debug_boxes_, boxes_, ratio_ = sess.run(
                     [dets_tensor, images, debug_boxes, boxes, ratio])
+                print(dets_)
                 debug.test_debug(images_[0], dets_[0], debug_boxes_[0], boxes_[
                                  0], ratio_[0], self.data_train.coco, step)
             if step % self.save_pre_every == 0 and step > 0:
@@ -197,7 +199,7 @@ class Train():
         print(self.num_steps)
         debug = Debug()
         epoch = 5
-        if self.load(saver, sess, self.snapshot_dir):
+        if (False):#self.load(saver, sess, self.snapshot_dir):
             print(" [*] Load SUCCESS")
         else:
             print(" [!] Load failed...")
@@ -213,11 +215,13 @@ class Train():
             print('step %d, loss %g, focal_loss %g, pull_loss %g, push_loss %g, offset_loss %g, time %g, lr %g'
                   % (step, loss_, focal_loss_, pull_loss_, push_loss_, offset_loss_, duration, lr_))
 
-            if step % 100 == 0:
+            if step % 150 == 0:
                 dets_, images_, debug_boxes_, boxes_, ratio_ = sess.run(
                     [dets_tensor, images, debug_boxes, boxes, ratio])
                 debug.test_debug(images_[0], dets_[0], debug_boxes_[0], boxes_[
                                  0], ratio_[0], self.data_train.coco, step)
+            
+            
             if step % self.save_pre_every == 0 and step > 0:
                 saver.save(sess, self.snapshot_file, epoch)
                 epoch += 1
@@ -229,4 +233,4 @@ if __name__ == "__main__":
 
     t = Train()
     # t.train_single()
-    t.train_mult()
+    t.train_single()

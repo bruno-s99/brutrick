@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from matplotlib import pyplot as plt
 def full_image_crop(image, detections):
     detections    = detections.copy()
     height, width = image.shape[0:2]
@@ -17,9 +18,11 @@ def resize_image(image, detections, size):
     detections    = detections.copy()
     height, width = image.shape[0:2]
     new_height, new_width = size
-
+    
+    
+  
     image = cv2.resize(image, (new_width, new_height))
-
+    
     height_ratio = new_height / height
     width_ratio  = new_width  / width
     detections[:, 0:4:2] *= width_ratio

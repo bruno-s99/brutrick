@@ -1,3 +1,5 @@
+import sys
+sys.path.append("./data/cocoapi/PythonAPI/")
 from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
 from config import cfg
@@ -7,8 +9,7 @@ import pickle
 import numpy as np
 import json
 import os
-import sys
-sys.path.append("./data/cocoapi/PythonAPI/")
+from PIL import Image
 # sys.path.append('../')
 
 
@@ -127,11 +128,14 @@ class MSCOCO():
             image = self._coco.loadImgs(coco_image_id)[0]
             bboxes = []
             categories = []
-
-            for cat_id in self._cat_ids:
-                annotation_ids = self._coco.getAnnIds(
-                    imgIds=image["id"], catIds=cat_id)
-                annotations = self._coco.loadAnns(annotation_ids)
+        #FIXME: Im Moment werden 2 bbox Arrays erzeugt, für jede klasse eine also für keine drohne 
+        #und für eine drohne => entfern das None Array ?
+            
+            #for cat_id in self._cat_ids:
+            cat_id=2
+            annotation_ids = self._coco.getAnnIds(imgIds=image["id"], catIds=cat_id)
+            annotations = self._coco.loadAnns(annotation_ids)
+            if(not (annotation_ids==[])):
                 category = self._coco_to_class_map[cat_id]
                 for annotation in annotations:
                     bbox = np.array(annotation["bbox"])
@@ -139,6 +143,9 @@ class MSCOCO():
                     bboxes.append(bbox)
 
                     categories.append(category)
+            else:
+                categories.append(None)
+                bboxes.append([None,None,None,None])
 
             bboxes = np.array(bboxes, dtype=float)
             categories = np.array(categories, dtype=float)
@@ -148,14 +155,21 @@ class MSCOCO():
                 # each image's all boxes and box's cat [N,4]
                 self._detections[image_id] = np.hstack(
                     (bboxes, categories[:, None]))
+        #import ipdb; ipdb.set_trace()
 
     def get_all_img(self):
         return self._image_ids
 
     def read_img(self, img_name):
+        
         img_path = self._image_file.format(bytes.decode(img_name))
-        img = cv2.imread(img_path)
-        return img.astype(np.float32)
+        
+        img = np.asarray(Image.open(img_path).convert('RGB'))#cv2.imread(img_path)
+        if(img.any()==None): 
+            print("failed to load img[--]")
+            exit()
+        
+        return img[:,:,::-1].copy()#img.astype(np.float32)
 
     def detections(self, img_name):
         detections = self._detections[bytes.decode(img_name)]

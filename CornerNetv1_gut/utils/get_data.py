@@ -47,12 +47,14 @@ class Image_data():
 
         # reading detections
         detections = self.coco.detections(queue[0])
+        #print(detections)
         # cropping an image randomly
         if self.rand_crop:
             image, detections = random_crop(image, detections, self.rand_scales, self.input_size, border=self.border)
-        else:
-            image, detections = full_image_crop(image, detections)
-
+        #Erstmal rausnehmen vllt enstehen hierdurch die schwarzen ränder
+        #else:
+        #    image, detections = full_image_crop(image, detections)
+        
         image, detections = resize_image(image, detections, self.input_size)
         detections = clip_detections(image, detections)
 
@@ -126,17 +128,30 @@ class Image_data():
     def get_single_data(self,queue):
         images, tags_tl, tags_br,heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br,boxes,ratio=tf.py_func(self.read_from_disk,[queue],
             [tf.float32,tf.int64,tf.int64,tf.float32,tf.float32,tf.float32,tf.float32,tf.float32,tf.int64,tf.float32])
+        ratio=np.full((128,2),[128/511,128/511])
         return images, tags_tl, tags_br,heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br,boxes,ratio
     def inupt_producer(self):
-        quene_train=tf.train.slice_input_producer([self.coco.get_all_img()],shuffle=False)
+        #DEBUG:
+        ## quene_train is empty  
+        ## self.coco.get_all_img() give list of strings(name of pic)
+       
+        quene_train=tf.train.slice_input_producer([self.coco.get_all_img()],shuffle=True)
         self.images, self.tags_tl, self.tags_br,self.heatmaps_tl, self.heatmaps_br, self.tags_mask, self.offsets_tl, self.offsets_br,self.boxes,self.ratio=self.get_single_data(quene_train)
-
+        
     def get_batch_data(self,batch_size):
+        
+
+        #DEBUG:
+        ## tf.train.shuffle_batch : List of tensors is NONE, batch_size = 10, 
+        ## shapes = [(511, 511, 3),   128,    128,   (128, 128, 1), (128, 128, 1),   128,    (128, 2),   (128, 2),   (128, 4), (128, 2)]
+        ##                 |           |       |           |             |            |         |            |          |          |
+        ##              images,     tags_tl, tags_br,  heatmaps_tl,   heatmaps_br,  tags_mask, offset_tl, offset_br, boxes_ratio, ratio
         images, tags_tl, tags_br,heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br,boxes,ratio=tf.train.shuffle_batch([self.images,
             self.tags_tl, self.tags_br,self.heatmaps_tl, self.heatmaps_br, self.tags_mask, self.offsets_tl, self.offsets_br,self.boxes,self.ratio],
-            batch_size=batch_size,shapes=[(self.input_size[0], self.input_size[1],3),(128),(128),
-            (self.output_size[0], self.output_size[1],self.categories),(self.output_size[0], self.output_size[1],self.categories),
-            (128),(128,2),(128,2),(128,4),(128,2)],capacity=100,min_after_dequeue=batch_size,num_threads=1)#num_threads =16
+            batch_size=batch_size,
+            shapes=[(self.input_size[0], self.input_size[1],3),(128),(128),(self.output_size[0], self.output_size[1],self.categories),
+            (self.output_size[0], self.output_size[1],self.categories),(128),(128,2),(128,2),(128,4),(128,2)],
+            capacity=100,min_after_dequeue=batch_size,num_threads=1)#num_threads =16
         
         return images, tags_tl, tags_br,heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br,boxes,ratio
 
@@ -150,7 +165,7 @@ if __name__=='__main__':
     for i in range(12):
         images_, tags_tl_, tags_br_,heatmaps_tl_, heatmaps_br_, tags_mask_, offsets_tl_, offsets_br_,boxes_= sess.run([images, tags_tl, tags_br,heatmaps_tl, heatmaps_br, tags_mask, offsets_tl, offsets_br,boxes])
         for j in range(2):
-            #print(images_.shape,tags_tl_.shape,heatmaps_tl_.shape,tags_mask_.shape,offsets_tl_.shape)
+            print(images_.shape,tags_tl_.shape,heatmaps_tl_.shape,tags_mask_.shape,offsets_tl_.shape)
             img=(images_[j]*255).astype(np.uint8)
             heat_1=np.max(heatmaps_tl_[j],axis=-1)
             heat_cat=np.zeros_like(heat_1)

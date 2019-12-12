@@ -21,6 +21,7 @@ class Test():
         self.nms_threshold=cfg.nms_threshold
         self.max_per_image=cfg.max_per_image
         self.result_dir=cfg.result_dir
+        #self.ratio= cfg.output_sizes[0,0]/cfg.input_size[0]
     def test(self,sess):
         debug_dir = os.path.join(result_dir, "debug")
         if not os.path.exists(debug_dir):
@@ -175,7 +176,7 @@ class Debug():
         debug_boxes=debug_boxes.reshape(-1,4)
         debug_boxes[:,0:4:2] /= ratio[0]
         debug_boxes[:,1:4:2] /= ratio[1]
-
+        
         classes    = detections[..., -1].astype(np.int64)
 
         # reject detections with negative scores

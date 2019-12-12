@@ -3,8 +3,9 @@ from .model_squeezev1 import Model
 from module.loss_module import focal_loss, tag_loss, offset_loss
 from module.forward_module import nms, top_k, map_to_vector, expand_copy
 #TODO :
-## get  rid of border, cornerpooling
-## check prediction points 
+## get  rid of border 
+## get rid of cornerpooling(just switched the result of corner_pooling with layer before)  DONE
+## check prediction points
 ## chek pull and push loss
 
 class NetWork():
@@ -13,7 +14,7 @@ class NetWork():
         self.n_deep = 4
         self.n_dims = [256, 256, 384, 384, 512]
         self.n_res = [2, 2, 2, 2, 4]
-        self.out_dim = 80 #1
+        self.out_dim = 1 #80
         self.model = Model()
         self.pull_weight = pull_weight
         self.push_weight = push_weight
@@ -81,30 +82,31 @@ class NetWork():
                     start_layer, self.n_deep, self.n_res, self.n_dims, is_training=is_training)  # [b,128,128,256]
                 hinge_is = self.model.hinge(
                     hourglass_1, 256, 256, is_training=is_training)
-                # top_left_is, bottom_right_is = self.model.corner_pooling(
-                #     hinge_is, 256, 256, is_training=is_training)
-                top_left
+                
+                #top_left_is, bottom_right_is = self.model.corner_pooling(
+                #    hinge_is, 256, 256, is_training=is_training)
+                
 
                 # top_left
                 heat_tl_is = self.model.pred_mod(
-                    top_left_is, inp_dim=256, out_dim=self.out_dim, is_training=is_training,scope='heat_tl')
+                    hinge_is, inp_dim=256, out_dim=self.out_dim, is_training=is_training,scope='heat_tl')       #hinge_is was top_left_is 
                 tag_tl_is = self.model.pred_mod(
-                    top_left_is, inp_dim=256, dim=1,  is_training=is_training,scope='tag_tl')
+                    hinge_is, inp_dim=256, dim=1,  is_training=is_training,scope='tag_tl')                      #hinge_is was top_left_is
                 if not gt_tag_tl is None:
                     tag_tl_is = map_to_vector(tag_tl_is, gt_tag_tl)
                 offset_tl_is = self.model.offset(
-                    top_left_is, 256, 2, scope='offset_tl')
+                    hinge_is, 256, 2, scope='offset_tl')                                                        #hinge_is was top_left_is
                 if not gt_tag_tl is None:
                     offset_tl_is = map_to_vector(offset_tl_is, gt_tag_tl)
                 # bottom_right
                 heat_br_is = self.model.pred_mod(
-                    bottom_right_is, inp_dim=256, dim=self.out_dim, is_training=is_training, scope='heat_br')
+                    hinge_is, inp_dim=256, dim=self.out_dim, is_training=is_training, scope='heat_br')          #hinge_is was bottom_right_is
                 tag_br_is = self.model.pred_mod(
-                    bottom_right_is, inp_dim=256, dim=1,  is_training=is_training,scope='tag_br')
+                    hinge_is, inp_dim=256, dim=1,  is_training=is_training,scope='tag_br')                      #hinge_is was bottom_right_is
                 if not gt_tag_br is None:
                     tag_br_is = map_to_vector(tag_br_is, gt_tag_br)
                 offset_br_is = self.model.offset(
-                    bottom_right_is, 256, 2, scope='offset_br')
+                    hinge_is, 256, 2, scope='offset_br')                                                        #hinge_is was bottom_right_is
                 if not gt_tag_br is None:
                     offset_br_is = map_to_vector(offset_br_is, gt_tag_br)
 
@@ -115,28 +117,30 @@ class NetWork():
                     inter, self.n_deep, self.n_res, self.n_dims, is_training=is_training)  # [b,128,128,256]
                 hinge = self.model.hinge(
                     hourglass_2, 256, 256, is_training=is_training)
-                top_left, bottom_right = self.model.corner_pooling(
-                    hinge, 256, 256, is_training=is_training)
+
+                
+                # top_left, bottom_right = self.model.corner_pooling(
+                #     hinge, 256, 256, is_training=is_training)
                 # top_left
                 heat_tl = self.model.pred_mod(
-                    top_left, 256, self.out_dim, is_training=is_training, scope='heat_tl')
+                    hinge, 256, self.out_dim, is_training=is_training, scope='heat_tl')                         #hinge was top_left
                 tag_tl_test = self.model.pred_mod(
-                    top_left, 256, dim=1,  is_training=is_training,scope='tag_tl')
+                    hinge, 256, dim=1,  is_training=is_training,scope='tag_tl')                                 #hinge was top_left
                 if not gt_tag_tl is None:
                     tag_tl = map_to_vector(tag_tl_test, gt_tag_tl)
                 offset_tl_test = self.model.offset(
-                    top_left, 256, 2, scope='offset_tl')
+                    hinge, 256, 2, scope='offset_tl')                                                           #hinge was top_left
                 if not gt_tag_tl is None:
                     offset_tl = map_to_vector(offset_tl_test, gt_tag_tl)
                 # bottom_right
                 heat_br = self.model.pred_mod(
-                    bottom_right, 256, self.out_dim,  is_training=is_training,scope='heat_br')
+                    hinge, 256, self.out_dim,  is_training=is_training,scope='heat_br')                         #hinge was bottom_right
                 tag_br_test = self.model.pred_mod(
-                    bottom_right, 256, dim=1, is_training=is_training, scope='tag_br')
+                    hinge, 256, dim=1, is_training=is_training, scope='tag_br')                                 #hinge was bottom_right
                 if not gt_tag_br is None:
                     tag_br = map_to_vector(tag_br_test, gt_tag_br)
                 offset_br_test = self.model.offset(
-                    bottom_right, 256, 2, scope='offset_br')
+                    hinge, 256, 2, scope='offset_br')                                                           #hinge was bottom_right
                 if not gt_tag_br is None:
                     offset_br = map_to_vector(offset_br_test, gt_tag_br)
 
@@ -151,6 +155,7 @@ class NetWork():
             return outs, test_outs
 
     def loss(self, outs, targets, scope='loss'):
+        
         with tf.variable_scope(scope):
             stride = 6
             heats_tl = outs[0::stride]
@@ -165,7 +170,7 @@ class NetWork():
             gt_mask = targets[2]
             gt_offset_tl = targets[3]
             gt_offset_br = targets[4]
-
+          
             # focal loss
             focal_loss = 0
 
@@ -182,6 +187,7 @@ class NetWork():
             push_loss = 0
 
             for tag_tl, tag_br in zip(tags_tl, tags_br):
+
                 pull, push = self.tag_loss(tag_tl, tag_br, gt_mask)
                 pull_loss += pull
                 push_loss += push
@@ -210,7 +216,7 @@ class NetWork():
         heat_br = nms(heat_br)
         value_tl, position_tl, class_tl, y_tl, x_tl = top_k(heat_tl, k)
         value_br, position_br, class_br, y_br, x_br = top_k(heat_br, k)
-
+        print('position_tl[0][0]', position_tl)
         # expand to square
         x_tl = tf.cast(expand_copy(x_tl, k, False), tf.float32)
         y_tl = tf.cast(expand_copy(y_tl, k, False), tf.float32)

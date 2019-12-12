@@ -1,7 +1,6 @@
 import tensorflow as tf
 from module.corner_pooling import TopPool, BottomPool, LeftPool, RightPool
 
-from tensorflow.contrib.layers import batch_norm
 
 
 class Model():
@@ -125,11 +124,12 @@ class Model():
 
     def corner_pooling(self, inputs, input_dim, out_dim, k=3, is_training=True, scope='corner_pooling'):
         with tf.variable_scope(scope):
-            with tf.variable_scope('top_left'):
+            with tf.variable_scope('_left'):
                 top = self.conv_bn_re(
                     inputs, input_dim, 128, is_training=is_training, scope='top')
+               
                 top_pool = TopPool(top)
-
+                
                 left = self.conv_bn_re(
                     inputs, input_dim, 128, is_training=is_training, scope='left')
                 left_pool = LeftPool(left)

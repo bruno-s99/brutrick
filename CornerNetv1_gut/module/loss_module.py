@@ -48,6 +48,7 @@ def tag_loss(tag0, tag1, mask):
     dist=dist / (num2 + tf.convert_to_tensor(1e-4))
     dist=tf.multiply(dist_mask,dist)
     push=tf.reduce_sum(dist)
+    print(pull)
     return pull, push
 
 def offset_loss(offset, gt_offset, mask):

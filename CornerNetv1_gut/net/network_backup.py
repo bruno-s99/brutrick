@@ -7,7 +7,7 @@ class NetWork():
         self.n_deep  = 5
         self.n_dims  = [256, 256, 384, 384, 384, 512]
         self.n_res   = [2, 2, 2, 2, 2, 4]
-        self.out_dim = 80
+        self.out_dim = 1
         self.model=Model()
         self.pull_weight = pull_weight
         self.push_weight = push_weight

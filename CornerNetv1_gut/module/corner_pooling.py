@@ -18,7 +18,7 @@ def TopPool(inputs):
             i = i + 1
             return i,out
         _,out = tf.while_loop(cond, body, [i,out],shape_invariants= [i.get_shape(), tf.TensorShape([batch,None,w,c])])
-        import ipdb; ipdb.set_trace()
+        
         return out
     #backward
     def backward(inputs,dy):

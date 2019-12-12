@@ -81,7 +81,7 @@ class Center_NetWork():
                 # top_left_is, bottom_right_is = self.model.corner_pooling(
                 #     hinge_is, 256, 256, is_training=is_training)
 
-                center_heat=self.model.pred_mod(hinge_is,inp_dim=256)
+                center_heat=self.model.pred_mod(hinge_is,inp_dim=256, out_dim=self.out_dim)
 
                 # top_left
                 heat_tl_is = self.model.pred_mod(
